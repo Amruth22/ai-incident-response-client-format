@@ -6,8 +6,7 @@ NO state management, NO orchestration logic
 
 import logging
 from typing import Dict, Any, Optional
-import google.generativeai as genai
-from config import get_config_value
+from utils.gemini_client import GeminiClient
 
 logger = logging.getLogger("ai_analyzer")
 
@@ -16,20 +15,8 @@ class AIAnalyzer:
     """Pure AI analysis tool - reusable across workflows"""
     
     def __init__(self):
-        api_key = get_config_value("GEMINI_API_KEY", "")
-        model_name = get_config_value("GEMINI_MODEL", "gemini-2.0-flash")
-        
-        if not api_key:
-            logger.warning("Gemini API key not configured")
-            self.model = None
-        else:
-            try:
-                genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel(model_name)
-                logger.info(f"Gemini client initialized with model: {model_name}")
-            except Exception as e:
-                logger.error(f"Failed to initialize Gemini: {e}")
-                self.model = None
+        self.client = GeminiClient()
+        self.model = self.client.model
     
     def parse_incident_alert(self, raw_alert: str) -> Dict[str, Any]:
         """Parse unstructured incident alert into structured data"""
@@ -52,8 +39,7 @@ Severity: <severity_level>
 Description: <description>
 """
             
-            response = self.model.generate_content(prompt)
-            text = response.text if hasattr(response, 'text') else str(response)
+            text = self.client.generate_content(prompt)
             
             # Parse response
             parsed = self._parse_ai_response(text)
@@ -97,8 +83,7 @@ Provide:
 Be specific and actionable.
 """
             
-            response = self.model.generate_content(prompt)
-            text = response.text if hasattr(response, 'text') else str(response)
+            text = self.client.generate_content(prompt)
             
             # Parse response
             analysis = self._parse_root_cause_response(text)
