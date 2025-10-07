@@ -1,5 +1,6 @@
-# Core Dependencies
-python>=3.8
+# LangGraph and LangChain
+langgraph>=0.2.0
+langchain-core>=0.3.0
 
 # Google Gemini AI
 google-generativeai>=0.3.0
